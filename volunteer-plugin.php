@@ -41,15 +41,17 @@ function vol_plugin_setup_menu() {
     add_menu_page('Volunteer Opportunities', 'Volunteer', 'manage_options', 'volunteer-plugin', 'vol_plugin_admin_page', 'dashicons-groups');
 }
 
+// Admin Page Content
 function vol_plugin_admin_page() {
     global $wpdb;
     $table_name = $wpdb->prefix . 'volunteer_opportunities';
-
+    // Handle form submission
     if (isset($_POST['save_volunteer'])) {
+        // Sanitize and validate input
         $position = sanitize_text_field($_POST['position']);
         $email = sanitize_email($_POST['email']);
         $hours = intval($_POST['hours']);
-
+        // Insert into database
         if (!empty($position) && is_email($email)) {
             $wpdb->insert($table_name, array(
                 'position' => $position,
@@ -76,15 +78,16 @@ function vol_plugin_shortcode_handler($atts) {
     return "Volunteer Opportunity Table will render here.";
 }
 
+// Shortcode to display volunteer opportunities
 function vol_plugin_shortcode_handler($atts) {
     global $wpdb;
     $table_name = $wpdb->prefix . 'volunteer_opportunities';
-
+    // Handle shortcode attributes
     $atts = shortcode_atts( array(
         'hours' => '',
         'type' => '',
     ), $atts );
-
+    // Build query based on attributes
     $query = "SELECT * FROM $table_name WHERE 1=1";
     if (!empty($atts['hours'])) {
         $query .= $wpdb->prepare(" AND hours <= %d", $atts['hours']);
@@ -92,15 +95,15 @@ function vol_plugin_shortcode_handler($atts) {
     if (!empty($atts['type'])) {
         $query .= $wpdb->prepare(" AND type = %s", $atts['type']);
     }
-
+    // Fetch results
     $results = $wpdb->get_results($query);
-
+    // Generate HTML table
     $output = '<table style="width:100%; border-collapse: collapse;">';
     $output .= '<tr><th>Position</th><th>Org</th><th>Type</th><th>Hours</th><th>Email</th></tr>';
-
+    // Loop through results and apply conditional coloring
     foreach ($results as $row) {
         $bg_color = 'transparent';
-
+        // Determine background color based on hours if no filters are applied
         if (empty($atts['hours']) && empty($atts['type'])) {
             if ($row->hours < 10) {
                 $bg_color = '#d4edda'; // light green
@@ -119,6 +122,6 @@ function vol_plugin_shortcode_handler($atts) {
         $output .= "</tr>";
     }
     $output .= '</table>';
-
+    // Return the generated table
     return $output;
 }
