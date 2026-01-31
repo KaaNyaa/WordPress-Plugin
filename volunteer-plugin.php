@@ -44,3 +44,58 @@ function vol_plugin_setup_menu() {
 function vol_plugin_admin_page() {
     echo '<div class="wrap"><h1>Volunteer Opportunities</h1><p>Manage your listings here.</p></div>';
 }
+
+// Shortcode to display volunteer opportunities
+add_shortcode('volunteer', 'vol_plugin_shortcode_handler');
+function vol_plugin_shortcode_handler($atts) {
+    // Logic for parameters: hours and type
+    // Logic for conditional row colors (Green < 10, Yellow 10-100, Red > 100)
+    return "Volunteer Opportunity Table will render here.";
+}
+
+function vol_plugin_shortcode_handler($atts) {
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'volunteer_opportunities';
+
+    $atts = shortcode_atts( array(
+        'hours' => '',
+        'type' => '',
+    ), $atts );
+
+    $query = "SELECT * FROM $table_name WHERE 1=1";
+    if (!empty($atts['hours'])) {
+        $query .= $wpdb->prepare(" AND hours <= %d", $atts['hours']);
+    }
+    if (!empty($atts['type'])) {
+        $query .= $wpdb->prepare(" AND type = %s", $atts['type']);
+    }
+
+    $results = $wpdb->get_results($query);
+
+    $output = '<table style="width:100%; border-collapse: collapse;">';
+    $output .= '<tr><th>Position</th><th>Org</th><th>Type</th><th>Hours</th><th>Email</th></tr>';
+
+    foreach ($results as $row) {
+        $bg_color = 'transparent';
+
+        if (empty($atts['hours']) && empty($atts['type'])) {
+            if ($row->hours < 10) {
+                $bg_color = '#d4edda'; // light green
+            } elseif ($row->hours <= 100) {
+                $bg_color = '#fff3cd'; // light yellow
+            } else {
+                $bg_color = '#f8d7da'; // light red
+            }
+        }
+        $output .= "<tr style='background-color: $bg_color; border: 1px solid #ddd;'>";
+        $output .= "<td><strong>$row->position</strong></td>";
+        $output .= "<td>$row->organization</td>";
+        $output .= "<td>$row->type</td>";
+        $output .= "<td>$row->hours</td>";
+        $output .= "<td>$row->email</td>";
+        $output .= "</tr>";
+    }
+    $output .= '</table>';
+
+    return $output;
+}
