@@ -34,3 +34,13 @@ function vol_plugin_create_db() {
     require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
     dbDelta($sql);
 }
+
+// Admin Menu
+add_action('admin_menu', 'vol_plugin_setup_menu');
+function vol_plugin_setup_menu() {
+    add_menu_page('Volunteer Opportunities', 'Volunteer', 'manage_options', 'volunteer-plugin', 'vol_plugin_admin_page', 'dashicons-groups');
+}
+
+function vol_plugin_admin_page() {
+    echo '<div class="wrap"><h1>Volunteer Opportunities</h1><p>Manage your listings here.</p></div>';
+}
