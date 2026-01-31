@@ -2,11 +2,11 @@
 /**
  * Plugin Name: Volunteer Opportunity Plugin
  * Description: A plugin for listing and managing volunteer opportunities.
- * Version: 1.0
- * Author: Your Name
+ * Version: 1.0.13
+ * Author: Nick Micheletti
  */
 
-if (!defined('ABSPATH')) exit; // Safety first!
+if (!defined('ABSPATH')) exit; // Exit if accessed directly
 
 global $wpdb;
 $table_name = $wpdb->prefix . 'volunteer_opportunities';
@@ -128,14 +128,6 @@ function vol_plugin_admin_page() {
 }
 
 // Shortcode to display volunteer opportunities
-add_shortcode('volunteer', 'vol_plugin_shortcode_handler');
-function vol_plugin_shortcode_handler($atts) {
-    // Logic for parameters: hours and type
-    // Logic for conditional row colors (Green < 10, Yellow 10-100, Red > 100)
-    return "Volunteer Opportunity Table will render here.";
-}
-
-// Shortcode to display volunteer opportunities
 function vol_plugin_shortcode_handler($atts) {
     global $wpdb;
     $table_name = $wpdb->prefix . 'volunteer_opportunities';
@@ -188,5 +180,5 @@ function vol_plugin_deactivate() {
     global $wpdb;
     $table_name = $wpdb->prefix . 'volunteer_opportunities';
     // Archive the custom table created by the plugin
-    $wpdb->query("TURNATE TABLE $table_name");
+    $wpdb->query("TRUNCATE TABLE $table_name");
 }
