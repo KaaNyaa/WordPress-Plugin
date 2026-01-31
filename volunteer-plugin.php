@@ -72,7 +72,9 @@ function vol_plugin_admin_page() {
     if (isset($_GET['action']) && $_GET['action'] == 'delete' && isset($_GET['id'])) {
         $id = intval($_GET['id']);
         $wpdb->delete($table_name, array('id' => $id));
-        echo '<div class="updated"><p>Opportunity Deleted!</p></div>';
+        // redirect to admin page to avoid resubmission
+        wp_redirect(admin_url('admin.php?page=volunteer-plugin&deleted=true'));
+        exit;
     }
     // Fetch existing opportunities
     $opportunities = $wpdb->get_results("SELECT * FROM $table_name");
