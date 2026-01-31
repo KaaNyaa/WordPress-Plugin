@@ -68,7 +68,12 @@ function vol_plugin_admin_page() {
             echo '<div class="error"><p>Please provide a valid position and email.</p></div>';
         }
     }
-
+    // Handle deletion
+    if (isset($_GET['action']) && $_GET['action'] == 'delete' && isset($_GET['id'])) {
+        $id = intval($_GET['id']);
+        $wpdb->delete($table_name, array('id' => $id));
+        echo '<div class="updated"><p>Opportunity Deleted!</p></div>';
+    }
     // Render the form
     ?>
     <div class="wrap">
