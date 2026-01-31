@@ -74,6 +74,30 @@ function vol_plugin_admin_page() {
         $wpdb->delete($table_name, array('id' => $id));
         echo '<div class="updated"><p>Opportunity Deleted!</p></div>';
     }
+    // Fetch existing opportunities
+    $opportunities = $wpdb->get_results("SELECT * FROM $table_name");
+
+    echo '<h2>Existing Opportunities</h2>';
+    echo '<table class="wp-list-table widefat fixed striped">';
+    echo '<thead><tr><th>Position</th><th>Organization</th><th>Actions</th></tr></thead>';
+    echo '<tbody>';
+
+    foreach ($opportunities as $item) {
+        // Generate delete URL
+        $delete_url = admin_url('admin.php?page=volunteer-plugin&action=delete&id=' . $item->id);
+
+        echo "<tr>";
+        echo "<td>" . esc_html($item->position) . "</td>";
+        echo "<td>" . esc_html($item->organization) . "</td>";
+        echo "<td>" . esc_html($item->hours) . "</td>";
+        echo "<td><a href='$delete_url' class='button' onclick='return confirm(\"Are you sure?\")'>Delete</a></td>";
+        echo "</tr>";
+    }
+    if (empty($opportunities)) {
+        echo '<tr><td colspan="4">No opportunities found.</td></tr>';
+    }
+    
+    echo '</tbody></table>';
     // Render the form
     ?>
     <div class="wrap">
