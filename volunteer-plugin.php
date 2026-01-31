@@ -68,6 +68,7 @@ function vol_plugin_admin_page() {
             echo '<div class="error"><p>Please provide a valid position and email.</p></div>';
         }
     }
+
     // Render the form
     ?>
     <div class="wrap">
@@ -149,4 +150,12 @@ function vol_plugin_shortcode_handler($atts) {
     $output .= '</table>';
     // Return the generated table
     return $output;
+}
+
+register_deactivation_hook(__FILE__, 'vol_plugin_deactivate');
+function vol_plugin_deactivate() {
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'volunteer_opportunities';
+    // Archive the custom table created by the plugin
+    $wpdb->query("TURNATE TABLE $table_name");
 }
