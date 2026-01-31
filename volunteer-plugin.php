@@ -42,7 +42,30 @@ function vol_plugin_setup_menu() {
 }
 
 function vol_plugin_admin_page() {
-    echo '<div class="wrap"><h1>Volunteer Opportunities</h1><p>Manage your listings here.</p></div>';
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'volunteer_opportunities';
+
+    if (isset($_POST['save_volunteer'])) {
+        $position = sanitize_text_field($_POST['position']);
+        $email = sanitize_email($_POST['email']);
+        $hours = intval($_POST['hours']);
+
+        if (!empty($position) && is_email($email)) {
+            $wpdb->insert($table_name, array(
+                'position' => $position,
+                'organization' => sanitize_text_field($_POST['organization']),
+                'type' => sanitize_text_field($_POST['type']),
+                'email' => $email,
+                'description' => sanitize_textarea_field($_POST['description']),
+                'location' => sanitize_text_field($_POST['location']),
+                'hours' => $hours,
+                'skills' => sanitize_textarea_field($_POST['skills']),
+            ));
+            echo '<div class="updated"><p>Opportunity Saved!</p></div>';
+        } else {
+            echo '<div class="error"><p>Please provide a valid position and email.</p></div>';
+        }
+    }
 }
 
 // Shortcode to display volunteer opportunities
