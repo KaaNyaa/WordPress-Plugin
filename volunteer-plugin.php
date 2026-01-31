@@ -126,6 +126,8 @@ function vol_plugin_admin_page() {
     </div>
     <?php     
 }
+// added shortcode listener
+add_shortcode('volunteer', 'vol_plugin_shortcode_handler');
 
 // Shortcode to display volunteer opportunities
 function vol_plugin_shortcode_handler($atts) {
