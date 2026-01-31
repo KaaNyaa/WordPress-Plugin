@@ -68,6 +68,31 @@ function vol_plugin_admin_page() {
             echo '<div class="error"><p>Please provide a valid position and email.</p></div>';
         }
     }
+    // Render the form
+    ?>
+    <div class="wrap">
+        <h1>Volunteer Opportunities Manager</h1>
+
+        <h2>Add New Opportunity</h2>
+        <form method="post">
+            <table class="form-table">
+                <tr><th>Position</th><td><input name="position" type="text" required /></td></tr>
+                <tr><th>Organization</th><td><input name="organization" type="text" /></td></tr>
+                <tr><th>Type</th><td>
+                    <select name="type">
+                        <option value="one-time">One-time</option>
+                        <option value="recurring">Recurring</option>
+                        <option value="seasonal">Seasonal</option>
+                    </select>
+                </td></tr>
+                <tr><th>Email</th><td><input name="email" type="email" required /></td></tr>
+                <tr><th>Hours</th><td><input name="hours" type="number" /></td></tr>
+                <tr><th>Description</th><td><textarea name="description"></textarea></td></tr>
+            </table>
+            <input type="submit" name="save_volunteer" class="button button-primary" value="Save Opportunity">
+        </form>
+    </div>
+    <?php     
 }
 
 // Shortcode to display volunteer opportunities
