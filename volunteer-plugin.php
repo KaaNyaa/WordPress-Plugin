@@ -165,7 +165,7 @@ function vol_plugin_shortcode_handler($atts) {
             }
         }
         $output .= "<tr style='background-color: $bg_color; border: 1px solid #ddd;'>";
-        $output .= "<td><strong>$row->position</strong></td>";
+        $output .= "<td><em><strong>" . esc_html($row->position) . "</strong></em></td>";
         $output .= "<td>$row->organization</td>";
         $output .= "<td>$row->type</td>";
         $output .= "<td>$row->hours</td>";
