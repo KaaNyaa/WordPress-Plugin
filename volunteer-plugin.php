@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Volunteer Opportunity Plugin
  * Description: A plugin for listing and managing volunteer opportunities.
- * Version: 1.0.13
+ * Version: 1.0.18
  * Author: Nick Micheletti
  */
 
@@ -35,6 +35,23 @@ function vol_plugin_create_db() {
     dbDelta($sql);
 }
 
+// Separate logic handler to fix "Headers Already Sent"
+add_action('admin_init', 'vol_plugin_handle_logic');
+function vol_plugin_handle_logic() {
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'volunteer_opportunities';
+
+    // Handle deletion BEFORE any HTML output
+    if (isset($_GET['page']) && $_GET['page'] == 'volunteer-plugin' && isset($_GET['action']) && $_GET['action'] == 'delete' && isset($_GET['id'])) {
+        $id = intval($_GET['id']);
+        $wpdb->delete($table_name, array('id' => $id));
+        
+        // Safe redirect
+        wp_redirect(admin_url('admin.php?page=volunteer-plugin&deleted=true'));
+        exit;
+    }
+}
+
 // Admin Menu
 add_action('admin_menu', 'vol_plugin_setup_menu');
 function vol_plugin_setup_menu() {
@@ -45,6 +62,7 @@ function vol_plugin_setup_menu() {
 function vol_plugin_admin_page() {
     global $wpdb;
     $table_name = $wpdb->prefix . 'volunteer_opportunities';
+
     // Handle form submission
     if (isset($_POST['save_volunteer'])) {
         // Sanitize and validate input
@@ -68,14 +86,11 @@ function vol_plugin_admin_page() {
             echo '<div class="error"><p>Please provide a valid position and email.</p></div>';
         }
     }
-    // Handle deletion
-    if (isset($_GET['action']) && $_GET['action'] == 'delete' && isset($_GET['id'])) {
-        $id = intval($_GET['id']);
-        $wpdb->delete($table_name, array('id' => $id));
-        // redirect to admin page to avoid resubmission
-        wp_redirect(admin_url('admin.php?page=volunteer-plugin&deleted=true'));
-        exit;
+
+    if (isset($_GET['deleted'])) {
+        echo '<div class="updated"><p>Opportunity Deleted!</p></div>';
     }
+
     // Fetch existing opportunities
     $opportunities = $wpdb->get_results("SELECT * FROM $table_name");
 
@@ -166,10 +181,10 @@ function vol_plugin_shortcode_handler($atts) {
         }
         $output .= "<tr style='background-color: $bg_color; border: 1px solid #ddd;'>";
         $output .= "<td><em><strong>" . esc_html($row->position) . "</strong></em></td>";
-        $output .= "<td>$row->organization</td>";
-        $output .= "<td>$row->type</td>";
-        $output .= "<td>$row->hours</td>";
-        $output .= "<td>$row->email</td>";
+        $output .= "<td>" . esc_html($row->organization) . "</td>";
+        $output .= "<td>" . esc_html($row->type) . "</td>";
+        $output .= "<td>" . esc_html($row->hours) . "</td>";
+        $output .= "<td>" . esc_html($row->email) . "</td>";
         $output .= "</tr>";
     }
     $output .= '</table>';
@@ -203,4 +218,4 @@ function vol_plugin_seed_data() {
 }
 // Uncomment the line below, save, and refresh your WP admin to add data:
 // Afterwards, comment it back or remove it to avoid duplicate entries.
-// add_action('admin_init', 'vol_plugin_seed_data');
+//add_action('admin_init', 'vol_plugin_seed_data');
