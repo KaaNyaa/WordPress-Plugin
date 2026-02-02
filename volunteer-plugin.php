@@ -5,7 +5,7 @@
  * 
  * Plugin Name: Volunteer Opportunity Plugin
  * Description: A plugin for listing and managing volunteer opportunities.
- * Version: 1.0.18
+ * Version: 1.1
  * Author: Nick Micheletti
  */
 
