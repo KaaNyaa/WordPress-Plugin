@@ -77,9 +77,9 @@ function vol_plugin_admin_page() {
                 'type' => sanitize_text_field($_POST['type']),
                 'email' => $email,
                 'description' => sanitize_textarea_field($_POST['description']),
-                'location' => sanitize_text_field($_POST['location']),
+                'location' => sanitize_text_field($_POST['location'] ?? ''),
                 'hours' => $hours,
-                'skills' => sanitize_textarea_field($_POST['skills']),
+                'skills' => sanitize_textarea_field($_POST['skills'] ?? ''),
             ));
             echo '<div class="updated"><p>Opportunity Saved!</p></div>';
         } else {
@@ -135,6 +135,8 @@ function vol_plugin_admin_page() {
                 <tr><th>Email</th><td><input name="email" type="email" required /></td></tr>
                 <tr><th>Hours</th><td><input name="hours" type="number" /></td></tr>
                 <tr><th>Description</th><td><textarea name="description"></textarea></td></tr>
+                <tr><th>Location</th><td><input name="location" type="text" /></td></tr>
+                <tr><th>Skills</th><td><textarea name="skills"></textarea></td></tr>
             </table>
             <input type="submit" name="save_volunteer" class="button button-primary" value="Save Opportunity">
         </form>
