@@ -63,27 +63,35 @@ function vol_plugin_admin_page() {
     global $wpdb;
     $table_name = $wpdb->prefix . 'volunteer_opportunities';
 
+    $edit_record = null;
+    if (isset($_GET['action']) && $_GET['action'] == 'edit' && isset($_GET['id'])) {
+        $edit_id = intval($_GET['id']);
+        $edit_record = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_name WHERE id = %d", $edit_id));
+    }
+
     // Handle form submission
     if (isset($_POST['save_volunteer'])) {
-        // Sanitize and validate input
-        $position = sanitize_text_field($_POST['position']);
-        $email = sanitize_email($_POST['email']);
-        $hours = intval($_POST['hours']);
-        // Insert into database
-        if (!empty($position) && is_email($email)) {
-            $wpdb->insert($table_name, array(
-                'position' => $position,
-                'organization' => sanitize_text_field($_POST['organization']),
-                'type' => sanitize_text_field($_POST['type']),
-                'email' => $email,
-                'description' => sanitize_textarea_field($_POST['description']),
-                'location' => sanitize_text_field($_POST['location'] ?? ''),
-                'hours' => $hours,
-                'skills' => sanitize_textarea_field($_POST['skills'] ?? ''),
-            ));
-            echo '<div class="updated"><p>Opportunity Saved!</p></div>';
+        $data = array(
+            'position'     => sanitize_text_field($_POST['position']),
+            'organization' => sanitize_text_field($_POST['organization']),
+            'type'         => sanitize_text_field($_POST['type']),
+            'email'        => sanitize_email($_POST['email']),
+            'description'  => sanitize_textarea_field($_POST['description']),
+            'location'     => sanitize_text_field($_POST['location'] ?? ''),
+            'hours'        => intval($_POST['hours']),
+            'skills'       => sanitize_textarea_field($_POST['skills'] ?? ''),
+        );
+
+        if (isset($_GET['id']) && $edit_record) {
+            // Update existing
+            $wpdb->update($table_name, $data, array('id' => intval($_GET['id'])));
+            echo '<div class="updated"><p>Opportunity Updated!</p></div>';
+            // Refresh record for form autofill
+            $edit_record = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_name WHERE id = %d", intval($_GET['id'])));
         } else {
-            echo '<div class="error"><p>Please provide a valid position and email.</p></div>';
+            // Insert new
+            $wpdb->insert($table_name, $data);
+            echo '<div class="updated"><p>Opportunity Saved!</p></div>';
         }
     }
 
@@ -96,18 +104,22 @@ function vol_plugin_admin_page() {
 
     echo '<h2>Existing Opportunities</h2>';
     echo '<table class="wp-list-table widefat fixed striped">';
-    echo '<thead><tr><th>Position</th><th>Organization</th><th>Actions</th></tr></thead>';
+    echo '<thead><tr><th>Position</th><th>Organization</th><th>Hours</th><th>Actions</th></tr></thead>';
     echo '<tbody>';
 
     foreach ($opportunities as $item) {
         // Generate delete URL
         $delete_url = admin_url('admin.php?page=volunteer-plugin&action=delete&id=' . $item->id);
+        $edit_url = admin_url('admin.php?page=volunteer-plugin&action=edit&id=' . $item->id);
 
         echo "<tr>";
         echo "<td>" . esc_html($item->position) . "</td>";
         echo "<td>" . esc_html($item->organization) . "</td>";
         echo "<td>" . esc_html($item->hours) . "</td>";
-        echo "<td><a href='$delete_url' class='button' onclick='return confirm(\"Are you sure?\")'>Delete</a></td>";
+        echo "<td>
+                <a href='$edit_url' class='button' style='margin-right:5px;'>Edit</a>
+                <a href='$delete_url' class='button' onclick='return confirm(\"Are you sure?\")'>Delete</a>
+              </td>";
         echo "</tr>";
     }
     if (empty($opportunities)) {
@@ -119,26 +131,28 @@ function vol_plugin_admin_page() {
     ?>
     <div class="wrap">
         <h1>Volunteer Opportunities Manager</h1>
-
-        <h2>Add New Opportunity</h2>
+        <h2><?php echo $edit_record ? 'Edit Opportunity' : 'Add New Opportunity'; ?></h2>
         <form method="post">
             <table class="form-table">
-                <tr><th>Position</th><td><input name="position" type="text" required /></td></tr>
-                <tr><th>Organization</th><td><input name="organization" type="text" /></td></tr>
+                <tr><th>Position</th><td><input name="position" type="text" value="<?php echo $edit_record ? esc_attr($edit_record->position) : ''; ?>" required /></td></tr>
+                <tr><th>Organization</th><td><input name="organization" type="text" value="<?php echo $edit_record ? esc_attr($edit_record->organization) : ''; ?>" /></td></tr>
                 <tr><th>Type</th><td>
                     <select name="type">
-                        <option value="one-time">One-time</option>
-                        <option value="recurring">Recurring</option>
-                        <option value="seasonal">Seasonal</option>
+                        <option value="one-time" <?php selected($edit_record ? $edit_record->type : '', 'one-time'); ?>>One-time</option>
+                        <option value="recurring" <?php selected($edit_record ? $edit_record->type : '', 'recurring'); ?>>Recurring</option>
+                        <option value="seasonal" <?php selected($edit_record ? $edit_record->type : '', 'seasonal'); ?>>Seasonal</option>
                     </select>
                 </td></tr>
-                <tr><th>Email</th><td><input name="email" type="email" required /></td></tr>
-                <tr><th>Hours</th><td><input name="hours" type="number" /></td></tr>
-                <tr><th>Description</th><td><textarea name="description"></textarea></td></tr>
-                <tr><th>Location</th><td><input name="location" type="text" /></td></tr>
-                <tr><th>Skills</th><td><textarea name="skills"></textarea></td></tr>
+                <tr><th>Email</th><td><input name="email" type="email" value="<?php echo $edit_record ? esc_attr($edit_record->email) : ''; ?>" required /></td></tr>
+                <tr><th>Hours</th><td><input name="hours" type="number" value="<?php echo $edit_record ? esc_attr($edit_record->hours) : ''; ?>" /></td></tr>
+                <tr><th>Description</th><td><textarea name="description"><?php echo $edit_record ? esc_textarea($edit_record->description) : ''; ?></textarea></td></tr>
+                <tr><th>Location</th><td><input name="location" type="text" value="<?php echo $edit_record ? esc_attr($edit_record->location) : ''; ?>" /></td></tr>
+                <tr><th>Skills</th><td><textarea name="skills"><?php echo $edit_record ? esc_textarea($edit_record->skills) : ''; ?></textarea></td></tr>
             </table>
-            <input type="submit" name="save_volunteer" class="button button-primary" value="Save Opportunity">
+            <input type="submit" name="save_volunteer" class="button button-primary" value="<?php echo $edit_record ? 'Update Opportunity' : 'Save Opportunity'; ?>">
+            <?php if ($edit_record) : ?>
+                <a href="<?php echo admin_url('admin.php?page=volunteer-plugin'); ?>" class="button">Cancel Edit</a>
+            <?php endif; ?>
         </form>
     </div>
     <?php     
@@ -167,7 +181,7 @@ function vol_plugin_shortcode_handler($atts) {
     $results = $wpdb->get_results($query);
     // Generate HTML table
     $output = '<table style="width:100%; border-collapse: collapse;">';
-    $output .= '<tr><th>Position</th><th>Org</th><th>Type</th><th>Hours</th><th>Email</th></tr>';
+    $output .= '<tr><th>Position</th><th>Org</th><th>Type</th><th>Hours</th><th>Email</th><th>Location</th><th>Skills</th><th>Description</th></tr>';
     // Loop through results and apply conditional coloring
     foreach ($results as $row) {
         $bg_color = 'transparent';
@@ -187,6 +201,9 @@ function vol_plugin_shortcode_handler($atts) {
         $output .= "<td>" . esc_html($row->type) . "</td>";
         $output .= "<td>" . esc_html($row->hours) . "</td>";
         $output .= "<td>" . esc_html($row->email) . "</td>";
+        $output .= "<td>" . esc_html($row->location) . "</td>";
+        $output .= "<td>" . esc_html($row->skills) . "</td>";
+        $output .= "<td>" . esc_html($row->description) . "</td>";
         $output .= "</tr>";
     }
     $output .= '</table>';
