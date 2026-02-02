@@ -179,8 +179,14 @@ function vol_plugin_shortcode_handler($atts) {
     }
     // Fetch results
     $results = $wpdb->get_results($query);
+    $output = '<style>
+        .vol-table { width:100%; border-collapse: collapse; margin: 20px 0; font-family: sans-serif; }
+        .vol-table th, .vol-table td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        .vol-table th { background-color: #f4f4f4; }
+        .vol-table tr:nth-child(even) { background-color: #f9f9f9; }
+    </style>';
     // Generate HTML table
-    $output = '<table style="width:100%; border-collapse: collapse;">';
+    $output .= '<table class="vol-table" style="border-collapse: collapse;">';
     $output .= '<tr><th>Position</th><th>Org</th><th>Type</th><th>Hours</th><th>Email</th><th>Location</th><th>Skills</th><th>Description</th></tr>';
     // Loop through results and apply conditional coloring
     foreach ($results as $row) {
@@ -202,8 +208,8 @@ function vol_plugin_shortcode_handler($atts) {
         $output .= "<td>" . esc_html($row->hours) . "</td>";
         $output .= "<td>" . esc_html($row->email) . "</td>";
         $output .= "<td>" . esc_html($row->location) . "</td>";
-        $output .= "<td>" . esc_html($row->skills) . "</td>";
-        $output .= "<td>" . esc_html($row->description) . "</td>";
+        $output .= "<td>" . nl2br(esc_html($row->skills)) . "</td>";
+        $output .= "<td>" . nl2br(esc_html($row->description)) . "</td>";
         $output .= "</tr>";
     }
     $output .= '</table>';
@@ -215,20 +221,20 @@ register_deactivation_hook(__FILE__, 'vol_plugin_deactivate');
 function vol_plugin_deactivate() {
     global $wpdb;
     $table_name = $wpdb->prefix . 'volunteer_opportunities';
-    // Archive the custom table created by the plugin
+    // Clear all data on deactivation
     $wpdb->query("TRUNCATE TABLE $table_name");
 }
 
-// Temporary seeding script - delete after refreshing dashboard once!
+// Temporary seeding script
 function vol_plugin_seed_data() {
     global $wpdb;
     $table_name = $wpdb->prefix . 'volunteer_opportunities';
 
     $records = [
-        ['position' => 'Beach Cleanup', 'organization' => 'Ocean Rescue', 'type' => 'one-time', 'email' => 'save@ocean.org', 'hours' => 5, 'description' => 'Short cleanup event.'],
-        ['position' => 'Weekly Tutor', 'organization' => 'LearnBright', 'type' => 'recurring', 'email' => 'tutor@learn.org', 'hours' => 45, 'description' => 'Help students with math.'],
-        ['position' => 'Crisis Counselor', 'organization' => 'Helpline Inc', 'type' => 'recurring', 'email' => 'help@line.org', 'hours' => 120, 'description' => 'High-commitment role.'],
-        ['position' => 'Park Guide', 'organization' => 'City Parks', 'type' => 'seasonal', 'email' => 'info@parks.gov', 'hours' => 15, 'description' => 'Summer park tours.'],
+        ['position' => 'Beach Cleanup', 'organization' => 'Ocean Rescue', 'type' => 'one-time', 'email' => 'save@ocean.org', 'hours' => 5, 'description' => 'Help us keep the coastline clean after the weekend crowds.', 'location' => 'Main Street Beach', 'skills' => 'Physical stamina, Environmental awareness'],
+        ['position' => 'Weekly Tutor', 'organization' => 'LearnBright', 'type' => 'recurring', 'email' => 'tutor@learn.org', 'hours' => 45, 'description' => 'Help local middle school students with their algebra homework.', 'location' => 'Community Library', 'skills' => 'Mathematics, Patience, Communication'],
+        ['position' => 'Crisis Counselor', 'organization' => 'Helpline Inc', 'type' => 'recurring', 'email' => 'help@line.org', 'hours' => 120, 'description' => 'Provide support to individuals in distress via our 24/7 hotline.', 'location' => 'Remote / Office Center', 'skills' => 'Active listening, Empathy, Crisis management'],
+        ['position' => 'Park Guide', 'organization' => 'City Parks', 'type' => 'seasonal', 'email' => 'info@parks.gov', 'hours' => 15, 'description' => 'Lead walking tours through the botanical gardens during the summer bloom.', 'location' => 'City Botanical Gardens', 'skills' => 'Public speaking, Botany knowledge, Punctuality'],
     ];
 
     foreach ($records as $record) {
